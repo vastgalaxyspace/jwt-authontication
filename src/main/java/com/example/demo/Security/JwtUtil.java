@@ -3,29 +3,29 @@ package com.example.demo.Security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
 
-    private final String secretKey = "Dhiraj@29";
+    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Generates a secure key for HS256
 
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role",role)
+                .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*10))
-                .signWith(SignatureAlgorithm.HS256,secretKey)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .signWith(secretKey) // Use the SecretKey directly
                 .compact();
     }
 
     public Claims extractClaims(String token) {
-        return Jwts
-                .parser()
+        return Jwts.parser()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
@@ -34,7 +34,6 @@ public class JwtUtil {
 
     public String extractEmail(String token) {
         return extractClaims(token).getSubject();
-
     }
 
     public String extractRole(String token) {
